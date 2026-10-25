@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PO完成直前スクリーナー</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0b1220;color:#e8eef8}body{margin:0}.wrap{max-width:760px;margin:auto;padding:20px 14px}.sub{color:#aebbd0;font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.stat,.panel{background:#16243a;border:1px solid #263b5b;border-radius:14px;padding:12px}.stat b{display:block;font-size:22px;color:#6ee7b7}.stat span{font-size:11px;color:#b4c3d8}.tools{display:flex;gap:8px}.tools select,.tools button{background:#223a5d;border:1px solid #3b5a84;color:#fff;border-radius:9px;padding:9px}.row{display:flex;align-items:center;gap:8px;padding:13px 0;border-bottom:1px solid #2a3d59}.code{font-weight:700;font-size:16px;min-width:65px}.type{font-size:11px;color:#8bd5ff}.gap{margin-left:auto;color:#ffd27a}.links a{color:#9cc9ff;text-decoration:none;font-size:12px;margin-left:7px}.new{background:#e8a84d;color:#1b1409;border-radius:5px;padding:2px 5px;font-size:10px}.empty{text-align:center;color:#b4c3d8;padding:20px}.foot{font-size:11px;color:#91a1b8;line-height:1.6}
+</style></head>
+<body><main class="wrap"><h1>5・25・75・200日線 PO完成直前</h1><div id="date" class="sub">読み込み中…</div>
+<section class="stats"><div class="stat"><b id="total">-</b><span>候補銘柄</span></div><div class="stat"><b id="new">-</b><span>新規初動</span></div><div class="stat"><b id="near">-</b><span>MA差1.5%以内</span></div></section>
+<section class="panel tools"><select id="type"><option value="">3型すべて</option><option>5対25</option><option>25対75</option><option>75対200</option></select><select id="only"><option value="">すべて</option><option value="1">新規初動のみ</option></select><button id="reload">再読み込み</button></section>
+<section id="list" class="panel"><div class="empty">読み込み中…</div></section><p class="foot">終値ベース。200日線は前日比上昇を要求。価格・出来高・業績による除外はありません。候補は確認用です。</p></main>
+<script>
+let rows=[];const esc=s=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+function render(){const t=document.querySelector('#type').value,o=document.querySelector('#only').value,a=rows.filter(x=>(!t||x.type===t)&&(!o||x.new===1));document.querySelector('#list').innerHTML=a.length?a.map(x=>{const c=esc(x.code),q=encodeURIComponent(x.code);return `<div class="row"><div><span class="code">${c}</span>${x.new?'<span class="new">新規</span>':''}<div class="type">${esc(x.type)}　終値 ${Number(x.close).toLocaleString()}円</div></div><span class="gap">差 ${Number(x.gap).toFixed(2)}%</span><div class="links"><a href="https://www.tradingview.com/symbols/TSE-${q}/" target="_blank">TV</a><a href="https://www.google.com/search?q=SBI+${q}" target="_blank">SBI</a><a href="https://www.google.com/search?q=楽天証券+${q}" target="_blank">楽天</a><a href="https://www.google.com/search?q=moomoo+${q}" target="_blank">moomoo</a></div></div>`}).join(''):'<div class="empty">条件に合う銘柄はありません。</div>'}
+async function load(){try{const d=await (await fetch('data.json?'+Date.now())).json();rows=d.rows||[];document.querySelector('#date').textContent=`判定日 ${d.date} ｜ 最終更新 ${d.updated_at||''}`;document.querySelector('#total').textContent=d.candidates;document.querySelector('#new').textContent=d.new;document.querySelector('#near').textContent=d.candidates;render()}catch(e){document.querySelector('#date').textContent='データを読み込めません。Actionsを一度実行してください。';document.querySelector('#list').innerHTML='<div class="empty">data.jsonがありません。</div>'}}
+document.querySelector('#type').onchange=render;document.querySelector('#only').onchange=render;document.querySelector('#reload').onclick=load;load();
+</script></body></html>
